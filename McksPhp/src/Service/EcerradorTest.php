@@ -1,6 +1,7 @@
 <?php 
 
 namespace Alura\Leilao\Service;
+use Alura\Leilao\Dao\Leilao as LeilaoDao;
 use Alura\Leilao\Model\Leilao;
 use Alura\Leilao\Service\Encerrador;
 use PHPUnit\Framework\TestCase;
@@ -19,5 +20,27 @@ class EncerradorTest extends TestCase
         $encerrador = new Encerrador();
         $encerrador->encerra();
 
+        $leilaoDao = new LeilaoDao();
+        $leilaoDao->salva($fia147);
+        $leilaoDao->salva($variant);
+
+        $encerrador = new Encerrador();
+        $encerrador->encerra();
+        //Assertion
+        $leiloes = $leilaoDao->recuperarFinalizados();
+        self::assertCount(2, $leiloes);
+
+        self::assertEquals('Fiat 147 0km',
+        $leiloes[0]->recuperarDescricao()
+        );
+
+        self::assertEquals('Variant 1972 0Km',
+        $leiloes[0]->recuperarDescricao()
+        );
+
     }
+    
+
+
+
 }
