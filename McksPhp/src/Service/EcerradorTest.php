@@ -27,6 +27,7 @@ class EncerradorTest extends TestCase
         $encerrador = new Encerrador();
         $encerrador->encerra();
         //Assertion
+        //Este teste estaria testando a integridade do banco de dados
         $leiloes = $leilaoDao->recuperarFinalizados();
         self::assertCount(2, $leiloes);
 
