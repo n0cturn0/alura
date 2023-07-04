@@ -8,7 +8,8 @@ use PHPUnit\Framework\TestCase;
 class EncerradorTest extends TestCase
 {
     public function testLeioloesComMaisDeUmaSemanaDeveSerEncerrados() 
-    {
+    { 
+      
         $fia147 = new Leilao(
           'Fiat 147 0Km',
           new \DateTimeImmutable('8 days ago') 
