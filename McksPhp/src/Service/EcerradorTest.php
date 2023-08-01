@@ -1,48 +1,67 @@
-<?php 
+<?php
 
-namespace Alura\Leilao\Service;
+namespace Alura\Leilao\Tests\Service;
+
 use Alura\Leilao\Dao\Leilao as LeilaoDao;
 use Alura\Leilao\Model\Leilao;
 use Alura\Leilao\Service\Encerrador;
 use PHPUnit\Framework\TestCase;
+
+
+class LeilaoDaoMock extends LeilaoDao
+{
+    private $leiloes = [];
+
+    public function salva(Leilao $leilao): void
+    {
+        $this->leiloes[] = $leilao;
+    }
+
+    public function recuperarFinalizados(): array
+    {
+        return array_filter($this->leiloes, function (Leilao $leilao) {
+            return $leilao->estaFinalizado();
+        });
+    }
+
+    public function recuperarNaoFinalizados(): array
+    {
+        return array_filter($this->leiloes, function (Leilao $leilao) {
+            return !$leilao->estaFinalizado();
+        });
+    }
+
+    public function atualiza(Leilao $leilao)
+    {
+        return;
+    }
+}
+
+
 class EncerradorTest extends TestCase
 {
-    public function testLeioloesComMaisDeUmaSemanaDeveSerEncerrados() 
-    { 
-      
-        $fia147 = new Leilao(
-          'Fiat 147 0Km',
-          new \DateTimeImmutable('8 days ago') 
-        );
-        $variant = new Leilao(
-            'Variant 1972 0Km',
-            new \DateTimeImmutable('10 days ago') 
-          );
-        $encerrador = new Encerrador();
+    public function testDeveEncerrarLeiloesComMaisDeUmaSemana()
+    {
+        $leilaoFiat = new Leilao('Fiat 147 0Km', new \DateTimeImmutable('8 days ago'));
+        $leilaoVariante = new Leilao('Variante 0Km', new \DateTimeImmutable('10 days ago'));
+
+        $leilaoDao = new LeilaoDaoMock();
+        $leilaoDao->salva($leilaoFiat);
+        $leilaoDao->salva($leilaoVariante);
+
+        $encerrador = new Encerrador($leilaoDao);
         $encerrador->encerra();
 
-        $leilaoDao = new LeilaoDao();
-        $leilaoDao->salva($fia147);
-        $leilaoDao->salva($variant);
-
-        $encerrador = new Encerrador();
-        $encerrador->encerra();
-        //Assertion
-        //Este teste estaria testando a integridade do banco de dados
-        $leiloes = $leilaoDao->recuperarFinalizados();
-        self::assertCount(2, $leiloes);
-
-        self::assertEquals('Fiat 147 0km',
-        $leiloes[0]->recuperarDescricao()
+        $leiloesEncerrados = $leilaoDao->recuperarFinalizados();
+        static::assertCount(2, $leiloesEncerrados);
+        static::assertEquals(
+            'Fiat 147 0Km',
+            $leiloesEncerrados[0]->recuperarDescricao()
         );
-
-        self::assertEquals('Variant 1972 0Km',
-        $leiloes[0]->recuperarDescricao()
+        static::assertEquals(
+            'Variante 0Km',
+            $leiloesEncerrados[1]->recuperarDescricao()
         );
-
     }
-    
-
-
-
 }
+
